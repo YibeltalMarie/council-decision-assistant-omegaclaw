@@ -13,7 +13,7 @@
           (configure maxWakeLoops 1)
           (configure spamShield True)
           (configure sleepInterval 1) ;10
-          (configure LLM gemini-3.1-pro)
+          (configure LLM gemini-3.5-flash)
           (configure provider Gemini) ;Anthropic or OpenAI or ASICloud or ASIOne or Gemini or Test
           (configure maxOutputToken 6000)
           (configure reasoningMode medium)
