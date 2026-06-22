@@ -327,3 +327,22 @@ def useLocalEmbedding(atom):
         atom,
         normalize_embeddings=True
     ).tolist()
+
+
+_gemini_embedding_client = None
+
+def useGeminiEmbedding(atom):
+    """Compute an embedding vector for `atom` using Gemini's embed_content API."""
+    global _gemini_embedding_client
+    if _gemini_embedding_client is None:
+        if "GEMINI_API_KEY" not in os.environ:
+            raise RuntimeError("GEMINI_API_KEY not set; cannot use Gemini embeddings.")
+        from google import genai
+        _gemini_embedding_client = genai.Client(api_key=os.environ["GEMINI_API_KEY"])
+
+    response = _gemini_embedding_client.models.embed_content(
+        model="gemini-embedding-001",
+        contents=atom,
+    )
+    # response.embeddings is a list (one per input); we send one string, so take the first
+    return response.embeddings[0].values
