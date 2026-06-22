@@ -188,6 +188,67 @@ class OpenAIProvider(AIProvider):
             return ""
 
 
+class GeminiProvider(AbstractAIProvider):
+    """Provider for Google's Gemini models, using the native google-genai SDK."""
+
+    def __init__(self, name: str, var_name: str, model_name: str):
+        super().__init__(name)
+        self._var_name = var_name
+        self._model_name = model_name
+        self._client = None  # lazy initialization
+
+    def _ensure_client(self):
+        """Initialize the Gemini client on first use."""
+        if self._client is None:
+            self._client = self._create_client()
+
+    def _create_client(self):
+        """Create a google-genai Client from the environment, if configured."""
+        if self._var_name in os.environ:
+            from google import genai
+            return genai.Client(api_key=os.environ.get(self._var_name))
+        return None
+
+    @property
+    def is_available(self) -> bool:
+        """Check if provider is configured (without initializing)."""
+        return bool(os.environ.get(self._var_name))
+
+    def chat(self, content: str, max_tokens: int = 6000, reasoning: str = "medium", **kwargs) -> str:
+        """Send chat request to Gemini, initializing client if needed."""
+        self._ensure_client()
+
+        if self._client is None:
+            raise RuntimeError(f"{self.name} not configured (set {self._var_name})")
+
+        if ":-:-:-:" in content:
+            sysmsg, usermsg = content.split(":-:-:-:", 1)
+        else:
+            sysmsg, usermsg = "", content
+
+        try:
+            from google.genai import types
+            config = types.GenerateContentConfig(
+                system_instruction=sysmsg if sysmsg else None,
+                max_output_tokens=max_tokens,
+            )
+            response = self._client.models.generate_content(
+                model=self._model_name,
+                contents=usermsg,
+                config=config,
+            )
+            raw = response.text or ""
+            _log_raw(self._name, self._model_name, raw)
+            return self._clean_text(raw)
+        except Exception as e:
+            print(f"[lib_llm_ext.GeminiProvider.chat] Exception while communicating with LLM: {e}")
+            return ""
+
+    def _clean_text(self, text: str) -> str:
+        """Unescape special characters."""
+        return text.replace("_quote_", '"').replace("_apostrophe_", "'")
+
+
 class TestProvider(AbstractAIProvider):
     """Test provider for mocking LLM output"""
 
@@ -235,6 +296,7 @@ _register_provider_instance(OpenRouterProvider(name="OpenRouter", var_name="OPEN
 _register_provider_instance(OpenRouterProvider(name="MiniMaxM3", var_name="OPENROUTER_API_KEY", model_name="minimax/minimax-m3", base_url="https://openrouter.ai/api/v1"))
 _register_provider_instance(TestProvider())
 _register_provider_instance(OpenAIProvider(name="OpenAI", var_name="OPENAI_API_KEY", model_name="gpt-5.4", base_url="https://api.openai.com/v1"))
+_register_provider_instance(GeminiProvider(name="Gemini", var_name="GEMINI_API_KEY", model_name="gemini-3.1-pro"))
 
 
 def callProvider(provider_name: str, content: str, max_tokens: int = 6000, reasoning: str = "medium") -> str:
@@ -265,5 +327,3 @@ def useLocalEmbedding(atom):
         atom,
         normalize_embeddings=True
     ).tolist()
-
-
