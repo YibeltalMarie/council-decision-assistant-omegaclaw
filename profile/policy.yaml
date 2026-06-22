@@ -11,9 +11,9 @@ filesystem_policy:
   - /opt
   - /var/log
   - /sys/devices/system
-  - /PeTTa
+  - /home/yibeltal/Work/icog_training_projects/training_1/PeTTa
   read_write:
-  - /PeTTa/repos/OmegaClaw-Core/memory
+  - /home/yibeltal/Work/icog_training_projects/training_1/PeTTa/repos/OmegaClaw-Core/memory
   - /tmp
   - /dev/null
   - /opt/huggingface
