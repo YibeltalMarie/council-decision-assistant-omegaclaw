@@ -11,6 +11,7 @@
     "- Append line to file: append-file filename string",
     ;COMMUNICATION CHANNELS:
     "- Search the web for evidence about a specific option, for decision-making: evidence_search option_name"
+    "- Compare two options and recommend the better one using evidence and NAL reasoning: compare_options option_a option_b"
     "- Send message to user: send string"
     "- Search the web: search string"
     ;"- Search the web using the Tavily Search Agent: tavily-search string"
@@ -57,6 +58,11 @@
 
 (= (technical-analysis $ticker)
    (py-call (agentverse.technical_analysis $ticker)))
+
+(= (compare_options $option_a $option_b)
+   (let $verdict (weigh_evidence $option_a $option_b)
+        (py-str ("COUNCIL DECISION: " $verdict
+                 " Use send to report the recommendation with confidence scores to the user."))))
 
 !(import_prolog_functions_from_file (library OmegaClaw-Core ./src/skills.pl) (shell first_char gc read_file_tail))
 
