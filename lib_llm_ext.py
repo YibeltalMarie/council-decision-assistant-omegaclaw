@@ -296,7 +296,7 @@ _register_provider_instance(OpenRouterProvider(name="OpenRouter", var_name="OPEN
 _register_provider_instance(OpenRouterProvider(name="MiniMaxM3", var_name="OPENROUTER_API_KEY", model_name="minimax/minimax-m3", base_url="https://openrouter.ai/api/v1"))
 _register_provider_instance(TestProvider())
 _register_provider_instance(OpenAIProvider(name="OpenAI", var_name="OPENAI_API_KEY", model_name="gpt-5.4", base_url="https://api.openai.com/v1"))
-_register_provider_instance(GeminiProvider(name="Gemini", var_name="GEMINI_API_KEY", model_name="gemini-3.5-flash"))
+_register_provider_instance(GeminiProvider(name="Gemini", var_name="GEMINI_API_KEY", model_name="gemini-flash-lite-latest"))
 
 
 def callProvider(provider_name: str, content: str, max_tokens: int = 6000, reasoning: str = "medium") -> str:
