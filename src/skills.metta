@@ -10,9 +10,10 @@
     "- Write string to file: write-file filename string"
     "- Append line to file: append-file filename string",
     ;COMMUNICATION CHANNELS:
+    "- Search the web for evidence about a specific option, for decision-making: evidence_search option_name"
     "- Send message to user: send string"
     "- Search the web: search string"
-    "- Search the web using the Tavily Search Agent: tavily-search string"
+    ;"- Search the web using the Tavily Search Agent: tavily-search string"
     "- Get technical analysis for a stock ticker using the Technical Analysis Agent: technical-analysis ticker"
     ;CODE EXECUTION:
     "- Execute MeTTa expression: metta sexpression"
@@ -50,6 +51,9 @@
 
 (= (tavily-search $query)
    (py-call (agentverse.tavily_search $query)))
+
+(= (evidence_search $option)
+   (py-call (websearch.search (py-str ("Reliable evidence pros and cons about: " $option)))))
 
 (= (technical-analysis $ticker)
    (py-call (agentverse.technical_analysis $ticker)))
