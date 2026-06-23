@@ -12,6 +12,7 @@
     ;COMMUNICATION CHANNELS:
     "- Search the web for evidence about a specific option, for decision-making: evidence_search option_name"
     "- Compare two options and recommend the better one using evidence and NAL reasoning: compare_options option_a option_b"
+    "- Weigh evidence for two options using NAL reasoning. Score each option from its evidence using these rules: confidence=0.9 if source is official/docs, 0.7 if established publication like baeldung/stackoverflow, 0.4 if forum/blog. frequency=0.8 if evidence is mostly positive, 0.3 if mostly negative, 0.55 if neutral. Then use metta (Truth_Revision (stv f1 c1) (stv f2 c2)) to combine multiple sources per option, and metta (Truth_Comparison (stv fa ca) (stv fb cb)) to compare. Report scores and winner: weigh_evidence option_a option_b"
     "- Send message to user: send string"
     "- Search the web: search string"
     ;"- Search the web using the Tavily Search Agent: tavily-search string"
@@ -63,7 +64,13 @@
    (let $verdict (weigh_evidence $option_a $option_b)
         (py-str ("COUNCIL DECISION: " $verdict
                  " Use send to report the recommendation with confidence scores to the user."))))
-
+(= (weigh_evidence $option_a $option_b)
+   (let* (($ev_a (evidence_search $option_a))
+          ($ev_b (evidence_search $option_b)))
+         (py-str ("EVIDENCE_A(" $option_a "): " $ev_a
+                  " EVIDENCE_B(" $option_b "): " $ev_b
+                  " Now apply the scoring rules from your instructions to assign stv values, use Truth_Revision to combine sources, Truth_Comparison to compare, and report the winner."))))
+                  
 !(import_prolog_functions_from_file (library OmegaClaw-Core ./src/skills.pl) (shell first_char gc read_file_tail))
 
 (= (metta $str)
