@@ -11,9 +11,9 @@ _last_message = ""
 _msg_lock = threading.Lock()
 _state_lock = threading.Lock()
 
-_bot_token = ""
-_api_base = ""
-_chat_id = ""
+_bot_token = "8786607632:AAGap9F52HGnk8p4ivyLhodjDzKXzDg2kdU"
+_api_base = f"https://api.telegram.org/bot{_bot_token}"
+_chat_id = "7712519578"
 _poll_timeout = 20
 _offset = None
 _connected = False
