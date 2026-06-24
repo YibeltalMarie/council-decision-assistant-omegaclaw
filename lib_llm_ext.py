@@ -346,3 +346,20 @@ def useGeminiEmbedding(atom):
     )
     # response.embeddings is a list (one per input); we send one string, so take the first
     return response.embeddings[0].values
+
+
+def search_with_urls(query):
+    """Search web and return results with URLs for source tier detection."""
+    try:
+        from ddgs import DDGS
+        results = []
+        with DDGS() as ddgs:
+            for r in ddgs.text(query, max_results=5):
+                results.append(
+                    f"(TITLE: {r.get('title','')} "
+                    f"URL: {r.get('href','')} "
+                    f"SNIPPET: {r.get('body','')})"
+                )
+        return results if results else [{"error": "No results found."}]
+    except Exception as e:
+        return [{"error": str(e)}]
