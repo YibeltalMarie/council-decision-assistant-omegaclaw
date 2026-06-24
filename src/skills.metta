@@ -4,6 +4,7 @@
     "- Query long-term embedding memory for skills and memories with short phrases only: query string"
     "- Episodes searches history for episodes around a time stamp, time format is same as in TIME: episodes time_string"
     "- Pin a certain string as short-term working memory item to keep track of task state: pin string"
+    "- Record a final decision and its reasoning to long-term memory: record_decision decision_summary"
     ;SHELL AND FILE I/O:
     "- Execute shell command without apostrophe in string, it returns the command output to you: shell string"
     "- Read file to string: read-file filename"
@@ -11,8 +12,8 @@
     "- Append line to file: append-file filename string",
     ;COMMUNICATION CHANNELS:
     "- Search the web for evidence about a specific option, for decision-making: evidence_search option_name"
-    "- Compare two options and recommend the better one using evidence and NAL reasoning: compare_options option_a option_b"
-    "- Weigh evidence for two options using NAL reasoning. Score each option from its evidence using these rules: confidence=0.9 if source is official/docs, 0.7 if established publication like baeldung/stackoverflow, 0.4 if forum/blog. frequency=0.8 if evidence is mostly positive, 0.3 if mostly negative, 0.55 if neutral. Then use metta (Truth_Revision (stv f1 c1) (stv f2 c2)) to combine multiple sources per option, and metta (Truth_Comparison (stv fa ca) (stv fb cb)) to compare. Report scores and winner: weigh_evidence option_a option_b"
+    "- Compare two options using evidence search and NAL reasoning. MUST use s-expression with each arg quoted separately. Example: (compare_options \"Spring_Boot\" \"PHP\"): compare_options option_a option_b"
+    "- [INTERNAL - called by compare_options] Weigh evidence for two options using NAL reasoning(multi-arg). IMPORTANT: pass each option as a separate unquoted arg (example: weigh_evidence Spring_Boot ev_a PHP ev_b). Score each option by URL domain: confidence=0.9 if URL contains official docs (spring.io, php.net, docs.*, *.io/docs), 0.7 if URL contains stackoverflow.com or baeldung.com, 0.4 if URL contains reddit.com, medium.com, or any blog/forum. frequency=0.8 if snippet is mostly positive, 0.3 if mostly negative, 0.55 if neutral. Use metta (Truth_Revision (stv f1 c1) (stv f2 c2)) to combine multiple sources per option into one stv, metta (Truth_Comparison (stv fa ca) (stv fb cb)) to compare the two final option stvs. Report the stv scores and winner: weigh_evidence option_a ev_a option_b ev_b"
     "- Send message to user: send string"
     "- Search the web: search string"
     ;"- Search the web using the Tavily Search Agent: tavily-search string"
@@ -55,22 +56,27 @@
    (py-call (agentverse.tavily_search $query)))
 
 (= (evidence_search $option)
-   (py-call (websearch.search (py-str ("Reliable evidence pros and cons about: " $option)))))
+   (py-call (lib_llm_ext.search_with_urls 
+            (py-str ("Reliable evidence pros and cons about: " $option)))))
 
 (= (technical-analysis $ticker)
    (py-call (agentverse.technical_analysis $ticker)))
 
 (= (compare_options $option_a $option_b)
-   (let $verdict (weigh_evidence $option_a $option_b)
-        (py-str ("COUNCIL DECISION: " $verdict
-                 " Use send to report the recommendation with confidence scores to the user."))))
-(= (weigh_evidence $option_a $option_b)
    (let* (($ev_a (evidence_search $option_a))
-          ($ev_b (evidence_search $option_b)))
-         (py-str ("EVIDENCE_A(" $option_a "): " $ev_a
-                  " EVIDENCE_B(" $option_b "): " $ev_b
-                  " Now apply the scoring rules from your instructions to assign stv values, use Truth_Revision to combine sources, Truth_Comparison to compare, and report the winner."))))
-                  
+          ($ev_b (evidence_search $option_b))
+          ($verdict (weigh_evidence $option_a $ev_a $option_b $ev_b)))
+         (py-str ("COUNCIL DECISION for " $option_a " vs " $option_b
+                  " | " $verdict))))
+
+(= (weigh_evidence $option_a $ev_a $option_b $ev_b)
+   (py-str ("EVIDENCE_A(" $option_a "): " $ev_a
+            " EVIDENCE_B(" $option_b "): " $ev_b
+            " Now apply the scoring rules: confidence=0.9 if official/docs, 0.7 if stackoverflow/baeldung, 0.4 if forum/blog. frequency=0.8 if mostly positive, 0.3 if mostly negative, 0.55 if neutral. Use metta (Truth_Revision ...) to combine sources per option, metta (Truth_Comparison ...) to compare, then report the winner with confidence scores.")))
+
+(= (record_decision $summary)
+   (remember (py-str ("COUNCIL_DECISION: " $summary " | TIME: " (get_time_as_string)))))
+   
 !(import_prolog_functions_from_file (library OmegaClaw-Core ./src/skills.pl) (shell first_char gc read_file_tail))
 
 (= (metta $str)
