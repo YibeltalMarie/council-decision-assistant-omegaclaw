@@ -30,12 +30,12 @@
 
 (= (getContext)
    (string-safe (py-str ("PROMPT: " (getPrompt (provider)) " SKILLS: " (getSkills)
-                         " OUTPUT_FORMAT: Up to 5 lines, do not wrap quotes around args, do not use variables:" (newline)
+                         " OUTPUT_FORMAT: Up to 5 lines. Single-arg: toolName arg. Multi-arg MUST use s-expression with each arg quoted: (toolName \"arg1\" \"arg2\"). Do not use variables:" (newline)
                          " toolName1 arg1" (newline)
-                         " toolName2 arg2" (newline)
-                         " toolName3 arg3" (newline)
-                         " toolName4 arg4" (newline)
-                         " toolName5 arg5" (newline)
+                         " (toolName2 \"arg1\" \"arg2\")" (newline)
+                         " (toolName3 \"arg1\" \"arg2\" \"arg3\" \"arg4\")" (newline)
+                         " toolName4 arg1" (newline)
+                         " toolName5 arg1" (newline)
                          " LAST_SKILL_USE_RESULTS: " (last_chars (get-state &lastresults) (maxFeedback)) " HISTORY: " (getHistory) " TIME: " (get_time_as_string)))))
 
 (= (HandleError $msg $cmd $sexpr)
