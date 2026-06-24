@@ -70,6 +70,7 @@ superior for rapid deployment and content-heavy sites.
 ## Architecture
 
 Council runs on a 3-layer stack:
+
 ┌─────────────────────────────────────────────┐
 
 │           OmegaClaw-Core (MeTTa)            │
